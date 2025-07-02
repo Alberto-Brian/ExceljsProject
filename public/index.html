@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExcelJS Web Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .template-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #4CAF50;
+        }
+
+        .template-card h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .template-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .api-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .endpoint {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .method.get {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .method.post {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .downloads-section {
+            margin-top: 30px;
+        }
+
+        .download-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .download-info {
+            flex: 1;
+        }
+
+        .download-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .download-meta {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .custom-form {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 ExcelJS Web Server</h1>
+            <p>Gerador de arquivos Excel via API REST</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>🚀 Templates Disponíveis</h2>
+                <div class="templates-grid">
+                    <div class="template-card" onclick="gerarPlanilha('basic')">
+                        <h3>📋 Planilha Básica</h3>
+                        <p>Planilha simples com dados de funcionários, formatação básica e cálculos.</p>
+                        <button class="btn">Gerar Planilha</button>
+                    </div>
+
+                    <div class="template-card" onclick="gerarPlanilha('vendas')">
+                        <h3>📈 Relatório de Vendas</h3>
+                        <p>Relatório completo com fórmulas Excel, análises e formatação avançada.</p>
+                        <button class="btn">Gerar Relatório</button>
+                    </div>
+
+                    <div class="template-card" onclick="gerarPlanilha('produtos')">
+                        <h3>📦 Lista de Produtos</h3>
+                        <p>Catálogo de produtos com cálculos de estoque e valores totais.</p>
+                        <button class="btn">Gerar Lista</button>
+                    </div>
+
+                    <div class="template-card">
+                        <h3>⚙️ Planilha Personalizada</h3>
+                        <p>Crie sua própria planilha enviando dados personalizados via POST.</p>
+                        <button class="btn btn-secondary" onclick="toggleCustomForm()">Configurar</button>
+                    </div>
+                </div>
+
+                <div class="custom-form" id="customForm" style="display: none;">
+                    <h3>Criar Planilha Personalizada</h3>
+                    <form onsubmit="gerarPlanilhaCustom(event)">
+                        <div class="form-group">
+                            <label for="titulo">Título da Planilha:</label>
+                            <input type="text" id="titulo" name="titulo" value="Minha Planilha" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="colunas">Colunas (JSON):</label>
+                            <textarea id="colunas" name="colunas" placeholder='[{"header":"Nome","key":"nome","width":20},{"header":"Email","key":"email","width":30}]' required>[
+  {"header": "ID", "key": "id", "width": 10},
+  {"header": "Nome", "key": "nome", "width": 20},
+  {"header": "Email", "key": "email", "width": 30}
+]</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dados">Dados (JSON):</label>
+                            <textarea id="dados" name="dados" placeholder='[{"nome":"João","email":"joao@email.com"}]' required>[
+  {"id": 1, "nome": "João Silva", "email": "joao@email.com"},
+  {"id": 2, "nome": "Maria Santos", "email": "maria@email.com"}
+]</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">Gerar Planilha Personalizada</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📁 Downloads Recentes</h2>
+                <div id="downloadsList">
+                    <p>Carregando arquivos...</p>
+                </div>
+                <button class="btn btn-secondary" onclick="carregarDownloads()">Atualizar Lista</button>
+            </div>
+
+            <div class="api-section">
+                <h2>🔗 Documentação da API</h2>
+                
+                <h3>Endpoints para Gerar Excel:</h3>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/excel/basic</strong> - Gerar planilha básica
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/excel/vendas</strong> - Gerar relatório de vendas
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/excel/produtos</strong> - Gerar lista de produtos
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <strong>/excel/custom</strong> - Gerar planilha personalizada
+                </div>
+
+                <h3>Endpoints de Informações:</h3>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/templates</strong> - Listar templates disponíveis
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/downloads</strong> - Listar arquivos para download
+                </div>
+                
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/info</strong> - Informações do sistema
+                </div>
+            </div>
+
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para gerar planilhas
+        async function gerarPlanilha(tipo) {
+            mostrarStatus('Gerando planilha...', 'info');
+            
+            try {
+                const response = await fetch(`/excel/${tipo}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    mostrarStatus(`✅ ${data.message}`, 'success');
+                    
+                    // Criar link de download
+                    const link = document.createElement('a');
+                    link.href = data.downloadUrl;
+                    link.download = data.arquivo;
+                    link.click();
+                    
+                    // Atualizar lista de downloads
+                    setTimeout(carregarDownloads, 1000);
+                } else {
+                    mostrarStatus(`❌ Erro: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                mostrarStatus(`❌ Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para gerar planilha personalizada
+        async function gerarPlanilhaCustom(event) {
+            event.preventDefault();
+            
+            const titulo = document.getElementById('titulo').value;
+            const colunasText = document.getElementById('colunas').value;
+            const dadosText = document.getElementById('dados').value;
+            
+            try {
+                const colunas = JSON.parse(colunasText);
+                const dados = JSON.parse(dadosText);
+                
+                mostrarStatus('Gerando planilha personalizada...', 'info');
+                
+                const response = await fetch('/excel/custom', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ titulo, colunas, dados })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarStatus(`✅ ${result.message}`, 'success');
+                    
+                    // Criar link de download
+                    const link = document.createElement('a');
+                    link.href = result.downloadUrl;
+                    link.download = result.arquivo;
+                    link.click();
+                    
+                    // Atualizar lista de downloads
+                    setTimeout(carregarDownloads, 1000);
+                } else {
+                    mostrarStatus(`❌ Erro: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                mostrarStatus(`❌ Erro no JSON: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para mostrar/ocultar formulário personalizado
+        function toggleCustomForm() {
+            const form = document.getElementById('customForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Função para mostrar status
+        function mostrarStatus(mensagem, tipo) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = mensagem;
+            statusDiv.className = `status ${tipo}`;
+            statusDiv.style.display = 'block';
+            
+            if (tipo !== 'info') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Função para carregar lista de downloads
+        async function carregarDownloads() {
+            try {
+                const response = await fetch('/api/downloads');
+                const data = await response.json();
+                
+                const downloadsList = document.getElementById('downloadsList');
+                
+                if (data.success && data.arquivos.length > 0) {
+                    downloadsList.innerHTML = data.arquivos.map(arquivo => `
+                        <div class="download-item">
+                            <div class="download-info">
+                                <div class="download-name">${arquivo.nome}</div>
+                                <div class="download-meta">
+                                    Tamanho: ${(arquivo.tamanho / 1024).toFixed(1)} KB | 
+                                    Criado: ${new Date(arquivo.criado).toLocaleString('pt-BR')}
+                                </div>
+                            </div>
+                            <a href="${arquivo.downloadUrl}" class="btn" download>Download</a>
+                        </div>
+                    `).join('');
+                } else {
+                    downloadsList.innerHTML = '<p>Nenhum arquivo disponível para download.</p>';
+                }
+            } catch (error) {
+                document.getElementById('downloadsList').innerHTML = '<p>Erro ao carregar arquivos.</p>';
+            }
+        }
+
+        // Carregar downloads ao inicializar a página
+        document.addEventListener('DOMContentLoaded', carregarDownloads);
+    </script>
+</body>
+</html>
