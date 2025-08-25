@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "dist",                                   
+    "strict": true,   
+    "lib": ["esnext"],                                   
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  
+  "exclude": [
+    "node_modules",                  // Exclui a pasta node_modules
+    "src/mocks"                      // Exclui a pasta mocks
+  ],
+}

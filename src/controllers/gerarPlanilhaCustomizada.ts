@@ -1,21 +1,36 @@
+import { Request, Response } from 'express';
 import ExcelJS from 'exceljs';
 import path from 'path';
-import { gerarNomeArquivo } from '../utils.js';
+import { gerarNomeArquivo } from '../utils';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
+// const __filename = fileURLToPath(import.meta.url);
+const __filename = require('path').resolve();
 const __dirname = dirname(__filename);
 
-export async function gerarPlanilhaCustomizada(req, res) {
+interface Coluna {
+  header: string;
+  key: string;
+  width?: number;
+}
+
+interface RequestBody {
+  titulo: string;
+  dados: Record<string, any>[];
+  colunas: Coluna[];
+}
+
+export async function gerarPlanilhaCustomizada(req: Request<{}, {}, RequestBody>, res: Response): Promise<void> {
   try {
     const { titulo, dados, colunas } = req.body;
 
     if (!titulo || !dados || !colunas) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Campos obrigatórios: titulo, dados, colunas'
       });
+      return;
     }
 
     const workbook = new ExcelJS.Workbook();
@@ -32,7 +47,7 @@ export async function gerarPlanilhaCustomizada(req, res) {
     worksheet.getRow(1).font = { bold: true };
 
     const nomeArquivo = gerarNomeArquivo('planilha-personalizada');
-    const caminho = path.join(__dirname, '..', '..', 'downloads', nomeArquivo);
+    const caminho = path.join(__dirname, 'project', 'downloads', nomeArquivo);
     await workbook.xlsx.writeFile(caminho);
 
     res.json({
@@ -42,6 +57,10 @@ export async function gerarPlanilhaCustomizada(req, res) {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Erro ao gerar planilha personalizada', error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro ao gerar planilha personalizada', 
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
   }
 }

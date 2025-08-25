@@ -2,18 +2,30 @@ import ExcelJS from 'exceljs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { Request, Response } from 'express';
 
-const __filename = fileURLToPath(import.meta.url);
+// const __filename = fileURLToPath(import.meta.url);
+const __filename = require('path').resolve();
 const __dirname = dirname(__filename);
 
-// Função utilitária
-function gerarNomeArquivo(prefixo) {
+// Tipagem para colunas da planilha customizada
+interface Coluna {
+  header: string;
+  key: string;
+  width?: number;
+}
+
+// Tipagem para dados genéricos (objeto com string keys e valores quaisquer)
+type Dados = Record<string, any>;
+
+// Função utilitária para gerar nome de arquivo
+function gerarNomeArquivo(prefixo: string): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   return `${prefixo}-${timestamp}.xlsx`;
 }
 
 // 📄 Planilha Básica
-export async function gerarPlanilhaBasica(req, res) {
+export async function gerarPlanilhaBasica(req: Request, res: Response): Promise<void> {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Básico');
@@ -32,13 +44,19 @@ export async function gerarPlanilhaBasica(req, res) {
       message: 'Planilha básica gerada',
       downloadUrl: `/downloads/${nomeArquivo}`
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ success: false, message: 'Erro ao gerar planilha básica', error: error.message });
   }
 }
 
 // 📊 Relatório de Vendas
-export async function gerarRelatorioVendas(req, res) {
+interface Venda {
+  mes: string;
+  vendas: number;
+  meta: number;
+}
+
+export async function gerarRelatorioVendas(req: Request, res: Response): Promise<void> {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Relatório de Vendas');
@@ -51,7 +69,7 @@ export async function gerarRelatorioVendas(req, res) {
 
     const headerRow = worksheet.addRow(['Mês', 'Vendas', 'Meta', 'Diferença', '% Meta', 'Status']);
 
-    const vendas = [
+    const vendas: Venda[] = [
       { mes: 'Janeiro', vendas: 150000, meta: 120000 },
       { mes: 'Fevereiro', vendas: 180000, meta: 150000 },
       { mes: 'Março', vendas: 220000, meta: 180000 },
@@ -103,13 +121,21 @@ export async function gerarRelatorioVendas(req, res) {
       totalVendas: vendas.reduce((s, i) => s + i.vendas, 0)
     });
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ success: false, message: 'Erro ao gerar relatório de vendas', error: error.message });
   }
 }
 
 // 📦 Lista de Produtos
-export async function gerarListaProdutos(req, res) {
+interface Produto {
+  codigo: string;
+  produto: string;
+  categoria: string;
+  preco: number;
+  estoque: number;
+}
+
+export async function gerarListaProdutos(req: Request, res: Response): Promise<void> {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Produtos');
@@ -123,7 +149,7 @@ export async function gerarListaProdutos(req, res) {
       { header: 'Valor Total', key: 'total', width: 15 }
     ];
 
-    const produtos = [
+    const produtos: Produto[] = [
       { codigo: 'P001', produto: 'Notebook', categoria: 'Informática', preco: 2500, estoque: 10 },
       { codigo: 'P002', produto: 'Mouse', categoria: 'Informática', preco: 80, estoque: 50 }
     ];
@@ -150,18 +176,25 @@ export async function gerarListaProdutos(req, res) {
       totalProdutos: produtos.length
     });
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ success: false, message: 'Erro ao gerar lista de produtos', error: error.message });
   }
 }
 
 // 🛠️ Planilha Personalizada
-export async function gerarPlanilhaCustomizada(req, res) {
+interface RequestBody {
+  titulo: string;
+  dados: Dados[];
+  colunas: Coluna[];
+}
+
+export async function gerarPlanilhaCustomizada(req: Request<{}, {}, RequestBody>, res: Response): Promise<void> {
   try {
     const { titulo, dados, colunas } = req.body;
 
     if (!titulo || !dados || !colunas) {
-      return res.status(400).json({ success: false, message: 'Faltam parâmetros obrigatórios' });
+      res.status(400).json({ success: false, message: 'Faltam parâmetros obrigatórios' });
+      return;
     }
 
     const workbook = new ExcelJS.Workbook();
@@ -186,7 +219,7 @@ export async function gerarPlanilhaCustomizada(req, res) {
       registros: dados.length
     });
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ success: false, message: 'Erro ao gerar planilha personalizada', error: error.message });
   }
 }

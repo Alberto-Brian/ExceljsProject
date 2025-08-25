@@ -4,7 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
+// const __filename = fileURLToPath(import.meta.url);
+const __filename = require('path').resolve();
 const __dirname = dirname(__filename);
 
 const router = express.Router();
@@ -69,7 +70,7 @@ router.get('/downloads', (req, res) => {
           downloadUrl: `/downloads/${arquivo}`
         };
       })
-      .sort((a, b) => b.criado - a.criado); // Mais recentes primeiro
+      .sort((a: any, b: any) => b.criado - a.criado); // Mais recentes primeiro
 
     res.json({
       success: true,
@@ -77,7 +78,7 @@ router.get('/downloads', (req, res) => {
       total: arquivos.length
     });
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       message: 'Erro ao listar arquivos',

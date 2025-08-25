@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
@@ -6,12 +6,12 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 // Simular __dirname para ES Modules
-const __filename = fileURLToPath(import.meta.url);
+const __filename = require('path').resolve();
 const __dirname = dirname(__filename);
 
 // Importar rotas (com extensão .js obrigatória)
-import excelRoutes from './routes/excel.js';
-import apiRoutes from './routes/api.js';
+import excelRoutes from './routes/excel';
+import apiRoutes from './routes/api';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,12 +37,12 @@ app.use('/excel', excelRoutes);
 app.use('/api', apiRoutes);
 
 // Página principal
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Middleware de erros
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error('Erro:', err.message);
   res.status(500).json({
     success: false,

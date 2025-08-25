@@ -1,13 +1,21 @@
-import { gerarNomeArquivo } from '../utils.js';
+import { Request, Response } from 'express';
+import { gerarNomeArquivo } from '../utils';
 import ExcelJS from 'exceljs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
+// const __filename = fileURLToPath(import.meta.url);
+const __filename = require('path').resolve();
 const __dirname = dirname(__filename);
 
-export async function gerarRelatorioVendas(req, res) {
+interface VendaItem {
+  mes: string;
+  vendas: number;
+  meta: number;
+}
+
+export async function gerarRelatorioVendas(req: Request, res: Response): Promise<void> {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Relatório de Vendas');
@@ -20,7 +28,7 @@ export async function gerarRelatorioVendas(req, res) {
 
     const headerRow = worksheet.addRow(['Mês', 'Vendas', 'Meta', 'Diferença', '% Meta', 'Status']);
 
-    const vendas = [
+    const vendas: VendaItem[] = [
       { mes: 'Janeiro', vendas: 150000, meta: 120000 },
       { mes: 'Fevereiro', vendas: 180000, meta: 150000 },
       { mes: 'Março', vendas: 220000, meta: 180000 },
@@ -59,10 +67,14 @@ export async function gerarRelatorioVendas(req, res) {
     worksheet.getColumn(3).numFmt = 'R$ #,##0';
     worksheet.getColumn(4).numFmt = 'R$ #,##0';
     worksheet.getColumn(5).numFmt = '0.0%';
-    worksheet.columns.forEach(col => col.width = 15);
+    worksheet.columns.forEach((col) => {
+      if (col) {
+        col.width = 15;
+      }
+    });
 
     const nomeArquivo = gerarNomeArquivo('relatorio-vendas');
-    const caminho = path.join(__dirname, '..', '..', 'downloads', nomeArquivo);
+    const caminho = path.join(__dirname, 'project', 'downloads', nomeArquivo);
     await workbook.xlsx.writeFile(caminho);
 
     res.json({
@@ -73,6 +85,10 @@ export async function gerarRelatorioVendas(req, res) {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Erro ao gerar relatório de vendas', error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro ao gerar relatório de vendas', 
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
   }
 }
